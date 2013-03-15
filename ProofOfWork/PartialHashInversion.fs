@@ -13,18 +13,27 @@ let rec replace list position item result =
     | _, H :: T -> replace T (position-1) item <| List.append result [H]
     | _, [] -> result
 
-let refreshHash (hash:byte list) =
+let refreshHash (hash:byte list) prefixLength =
     let newChar = List.head <| List.sortBy (fun x -> Guid.NewGuid()) characterSet
     let position = List.head <| List.sortBy (fun x -> Guid.NewGuid()) [0..hash.Length]
     replace hash position newChar []
 
-let rec collides (hash:byte list) length =
-    match hash, length with
+let computeHashNet (provider:HashAlgorithm) stamp =
+    List.toArray stamp |> provider.ComputeHash |> List.ofArray
+
+let sha = new SHA1Managed()
+let computeHash = computeHashNet <| sha
+
+let rec collides list length =
+    match list, length with
     | _, 0 -> true
-    | H :: T, _ -> collides T (length-1)
+    | 48uy :: T, _ -> collides T (length-1)
     | _, _ -> false
 
-let rec computeHash (stamp:byte list) length =
-    match collides stamp length with
-    | true -> hash
-    | false -> computeHash (refreshHash stamp) length
+let stampCollides stamp length =
+    collides (computeHash stamp) length
+
+let rec findHash stamp prefixLength length =
+    match stampCollides stamp length with
+    | true -> stamp
+    | false -> findHash (refreshHash stamp prefixLength) prefixLength length
