@@ -15,7 +15,7 @@ let rec replace list position item result =
 
 let refreshHash (hash:byte list) prefixLength =
     let newChar = List.head <| List.sortBy (fun x -> Guid.NewGuid()) characterSet
-    let position = List.head <| List.sortBy (fun x -> Guid.NewGuid()) [0..hash.Length]
+    let position = List.head <| List.sortBy (fun x -> Guid.NewGuid()) [prefixLength..hash.Length]
     replace hash position newChar []
 
 let computeHashNet (provider:HashAlgorithm) stamp =
